@@ -1,51 +1,54 @@
-const { date } = require("../../lib/date")
-const db = require('../../config/db')
+const { age, date } = require('../../lib/date')
+const instructor = require('../models/instructor')
+const Instructor = require('../models/instructor')
 
 //exportar funcoes
 
 module.exports = {
     index(req, res){
-        return res.render("instructors/index")
+        Instructor.all(function(instructors) {
+            return res.render("instructors/index", { instructors })
+        
+        })
     },
     create(req, res){
         return res.render("instructors/create")
     },
     show(req, res){    
+        Instructor.find(req.params.id, function(instructor) {
+            if (!instructor) return res.send("Instructor not found!")
 
-        return res.render("instructors/show", { instructor })
+            instructor.age = age(instructor.birth)
+            instructor.services = instructor.services.split(",")
+            instructor.created_at = date(instructor.created_at).format
+        })
+        return res.render("instructors/show", { instructor: instructor })
     },
     edit(req, res){
-        return
-        
+
+        Instructor.find(req.params.id, function(instructor) {
+            if (!instructor) return res.send("Instructor not found!")
+
+            instructor.birth = date(instructor.birth).iso
+            instructor.services = instructor.services.split(",")
+            instructor.created_at = date(instructor.created_at).format
+        })
+        return res.render("instructors/show", { instructor })        
     },
     post(req, res){
         
-        const query = `
-            INSERT INTO instructors (                
-                avatar_url,
-                name,
-                birth,
-                gender,
-                services,                
-                created_at
-            ) VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING id
-        `
+        const keys = Object.keys(req.body);
 
-        const values = [            
-            req.body.avatar_url,
-            req.body.name,            
-            date(req.body.birth).iso,
-            req.body.gender,
-            req.body.services,
-            date(Date.now()).iso
-        ]
-        
-       db.query(query, values, function(err, results){
-           if(err) return res.send("Database Error")
+        for (key of keys) {
+            if (req.body[key] == "") {
+                return res.send('Please, fill all fields!')
+            }
+        }
 
-           return res.redirect(`/instructors/${results.rows[0].id}`)
-       })
+        Instructor.create(req.body, function(instructor) {
+            return res.redirect(`/instructors/${instructor.id}`)
+
+        })
 
     },
     put(req, res){
@@ -57,14 +60,18 @@ module.exports = {
             }
         }
 
-        let {avatar_url, birth, name, services, gender} = req.body
-
+    
+        Instructor.update(req.body, function() {
+            return res.redirect(`/instructors/${req.body.id}`)
+        })
         
-        return res.redirect('/instructors')
+        
         
     },
     delete(req, res){
-        return
+        Instructor.delete(req.body.id, function() {
+            return res.redirect(`/instructors`)
+        })
     },
 }
 
