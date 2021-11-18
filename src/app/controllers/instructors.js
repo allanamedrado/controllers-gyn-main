@@ -1,5 +1,4 @@
 const { age, date } = require('../../lib/date')
-const instructor = require('../models/instructor')
 const Instructor = require('../models/instructor')
 
 //exportar funcoes
@@ -22,10 +21,9 @@ module.exports = {
             instructor.services = instructor.services.split(",")
             instructor.created_at = date(instructor.created_at).format
         })
-        return res.render("instructors/show", { instructor: instructor })
+        return res.render("instructors/show", { Instructor })
     },
     edit(req, res){
-
         Instructor.find(req.params.id, function(instructor) {
             if (!instructor) return res.send("Instructor not found!")
 
@@ -33,7 +31,7 @@ module.exports = {
             instructor.services = instructor.services.split(",")
             instructor.created_at = date(instructor.created_at).format
         })
-        return res.render("instructors/show", { instructor })        
+        return res.render("instructors/edit", { Instructor })        
     },
     post(req, res){
         
@@ -59,13 +57,9 @@ module.exports = {
                 return res.send('Please, fill all fields!')
             }
         }
-
-    
         Instructor.update(req.body, function() {
             return res.redirect(`/instructors/${req.body.id}`)
         })
-        
-        
         
     },
     delete(req, res){
