@@ -1,15 +1,32 @@
 
 const { age, date } = require('../../lib/date')
+const member = require('../models/member')
 const Member = require('../models/member')
 
 //exportar funcoes
 
 module.exports = {
     index(req, res){
-        Member.all(function(members) {
-            return res.render("members/index", { members})
-        
-        })
+        let { filter, page, limit } = req.query
+
+        page = page || 1
+        limit = limit || 2
+
+        let offset = limit * (page - 1)
+
+        const params = {
+            filter,
+            page,
+            limit,
+            offset,
+            callback(members) {
+                const pagination = {total: Math.ceil(members[0].total / limit), page}
+                return res.render("members/index", { members, pagination, filter})
+            }
+        }
+        console.log(params)
+
+        Member.paginate(params)
     },
     create(req, res){
         Member.instructorsSelectOptions(function(options) {
@@ -25,7 +42,7 @@ module.exports = {
             member.birth = date(member.birth).birthDay
             console.log(member)
         })
-        return res.render("members/show", {member})
+        return res.render("members/show", {member: member})
     },
     edit(req, res){
         Member.find(req.params.id, function(member) {

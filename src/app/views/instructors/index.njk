@@ -3,7 +3,14 @@
 {% block content %}
 
     <div class="card table-container">
-        <a href="/instructors/create">New</a>
+        
+        <div class="header">
+            <a class="button" href="/instructors/create">Novo</a>
+            <form action="/instructors" method="GET">
+                <input type="text" name="filter" value="{{filter}}" placeholder="Filtrar por nome ou atendimento "></input>
+                <button type="submit">Filtrar</button>
+            </form>
+        </div>
         <table>
             <thead>
                 <tr>
@@ -28,6 +35,9 @@
                 {% endfor %}                
             </tbody>
         </table>
+
+        <div class="pagination" data-filter={{filter}} data-page={{pagination.page}} data-total={{pagination.total}}>       
+        </div>
     </div>
 
 {% endblock content %}
